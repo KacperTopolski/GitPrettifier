@@ -1,3 +1,5 @@
+package CommitConsumers;
+
 import lombok.SneakyThrows;
 import org.eclipse.jgit.lib.CommitBuilder;
 import org.eclipse.jgit.lib.ObjectId;
@@ -11,13 +13,14 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CommitDuplicator implements Consumer<RevCommit> {
-    private final Consumer<CommitBuilder> commitModifier;
+    private final Consumer<CommitBuilder>[] commitModifiers;
     private final Repository repository;
 
     final Map<ObjectId, ObjectId> mapped = new HashMap<>();
+    private ObjectId lastCreated;
 
-    public CommitDuplicator(Repository repository, Consumer<CommitBuilder> commitModifier) {
-        this.commitModifier = commitModifier;
+    public CommitDuplicator(Repository repository, Consumer<CommitBuilder>[] commitModifiers) {
+        this.commitModifiers = commitModifiers;
         this.repository = repository;
     }
 
@@ -40,7 +43,8 @@ public class CommitDuplicator implements Consumer<RevCommit> {
         builder.setMessage(oldCommit.getFullMessage());
         builder.setEncoding(oldCommit.getEncoding());
 
-        commitModifier.accept(builder);
+        for (Consumer<CommitBuilder> ccb : commitModifiers)
+            ccb.accept(builder);
 
         ObjectInserter inserter = repository.newObjectInserter();
         ObjectId newId = inserter.insert(builder);
@@ -48,5 +52,10 @@ public class CommitDuplicator implements Consumer<RevCommit> {
         System.out.println(newId + " from " + oldCommit.getId());
 
         mapped.put(oldCommit.getId(), newId);
+        lastCreated = newId;
+    }
+
+    public ObjectId getLastCreated() {
+        return lastCreated;
     }
 }

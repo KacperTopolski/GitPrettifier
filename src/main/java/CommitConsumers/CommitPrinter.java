@@ -1,3 +1,5 @@
+package CommitConsumers;
+
 import lombok.SneakyThrows;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;

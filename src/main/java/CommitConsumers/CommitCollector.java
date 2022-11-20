@@ -1,7 +1,10 @@
+package CommitConsumers;
+
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.lang.reflect.Array;
+import Prettifier.Identity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

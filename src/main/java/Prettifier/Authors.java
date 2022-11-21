@@ -2,41 +2,15 @@ package Prettifier;
 
 import CommitConsumers.CommitCollector;
 import CommitModifiers.CommitIdentityMapper;
-import lombok.SneakyThrows;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public interface Authors {
-    @SneakyThrows(IOException.class)
-    static void handle(CommandLine cmd) {
-//        System.err.println("Authors.handle()");
+    static void handle(RepositoryWrapper rw) {
+        CommitCollector cc = rw.visitCommits(new CommitCollector());
+        List<Identity> ids = new ArrayList<>(cc.collectIdents());
 
-        String input = cmd.getOptionValue("input");
-        String output = cmd.hasOption("output") ? cmd.getOptionValue("output") : input;
-
-        File oldRepo = new File(input);
-        File newRepo = new File(output);
-
-        if (!oldRepo.exists()) {
-            System.err.println("input repo does not exist");
-            return;
-        }
-
-        if (!oldRepo.equals(newRepo)) {
-            if (newRepo.exists())
-                FileUtils.deleteDirectory(newRepo);
-            FileUtils.copyDirectory(oldRepo, newRepo);
-        }
-
-        File newRepoGit = newRepo.listFiles((dir, name) -> ".git".equals(name))[0];
-        RepositoryWrapper rw = new RepositoryWrapper(new FileRepository(newRepoGit));
-
-        handleRepo(rw);
+        rw.rebuild(new CommitIdentityMapper(getMap(ids)));
     }
 
     static Map<Identity, Identity> getMap(List<Identity> ids) {
@@ -101,12 +75,5 @@ public interface Authors {
 //            System.out.println(entry);
 
         return mp;
-    }
-
-    static void handleRepo(RepositoryWrapper rw) {
-        CommitCollector cc = rw.visitCommits(new CommitCollector());
-        List<Identity> ids = new ArrayList<>(cc.collectIdents());
-
-        rw.rebuild(new CommitIdentityMapper(getMap(ids)));
     }
 }

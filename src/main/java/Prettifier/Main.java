@@ -1,28 +1,14 @@
 package Prettifier;
 
-import CommitModifiers.CommitConstantTimeShifter;
-import CommitModifiers.CommitIdentityMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 
 public class Main {
-    static void mishandle(RepositoryWrapper r) {
-        CommitIdentityMapper cim = new CommitIdentityMapper(id -> {
-            return new Identity("Kacper Topolski", "kacpertopolski@op.pl");
-        });
-
-        CommitConstantTimeShifter ccts = new CommitConstantTimeShifter(
-                Duration.ofHours(24 * 162 - 4)
-        );
-
-        r.rebuild(cim, ccts);
-    }
-
     @SneakyThrows({IOException.class, InterruptedException.class})
     static String launchVim(String initialContent) {
         File tempFile = File.createTempFile("gitprettifier_test_file", ".txt");
@@ -73,15 +59,45 @@ public class Main {
                         .build()
         );
 
+        options.addOption(
+                Option.builder("map_time")
+                        .argName("map_time")
+                        .required(false)
+                        .numberOfArgs(2)
+                        .desc("Change commit time")
+                        .build()
+        );
+
         CommandLineParser parser = new DefaultParser();
         return parser.parse(options, args, false);
     }
 
+    @SneakyThrows(IOException.class)
     static void cmdHandler(CommandLine cmd) {
-//        System.err.println("cmdHandler()");
+        String input = cmd.getOptionValue("input");
+        String output = cmd.hasOption("output") ? cmd.getOptionValue("output") : input;
+
+        File oldRepo = new File(input);
+        File newRepo = new File(output);
+
+        if (!oldRepo.exists()) {
+            System.err.println("input repo does not exist");
+            return;
+        }
+
+        if (!oldRepo.equals(newRepo)) {
+            if (newRepo.exists())
+                FileUtils.deleteDirectory(newRepo);
+            FileUtils.copyDirectory(oldRepo, newRepo);
+        }
+
+        File newRepoGit = newRepo.listFiles((dir, name) -> ".git".equals(name))[0];
+        RepositoryWrapper rw = new RepositoryWrapper(new FileRepository(newRepoGit));
 
         if (cmd.hasOption("authors"))
-            Authors.handle(cmd);
+            Authors.handle(rw);
+        else if (cmd.hasOption("map_time"))
+            Time.handle(rw, cmd.getOptionValues("map_time")[0], cmd.getOptionValues("map_time")[1]);
     }
 
     public static void main(String[] args) {

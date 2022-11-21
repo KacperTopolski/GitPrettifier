@@ -1,10 +1,10 @@
 package CommitConsumers;
 
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import java.lang.reflect.Array;
 import Prettifier.Identity;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,5 +26,21 @@ public class CommitCollector implements Consumer<RevCommit> {
                 .flatMap(revCommit -> Stream.of(revCommit.getAuthorIdent(), revCommit.getCommitterIdent()))
                 .map(id -> new Identity(id.getName(), id.getEmailAddress()))
                 .collect(Collectors.toSet());
+    }
+
+    public Instant minimalTime() {
+        return commitList
+                .stream()
+                .flatMap(revCommit -> Stream.of(revCommit.getAuthorIdent().getWhenAsInstant(), revCommit.getCommitterIdent().getWhenAsInstant()))
+                .min(Instant::compareTo)
+                .get();
+    }
+
+    public Instant maximalTime() {
+        return commitList
+                .stream()
+                .flatMap(revCommit -> Stream.of(revCommit.getAuthorIdent().getWhenAsInstant(), revCommit.getCommitterIdent().getWhenAsInstant()))
+                .max(Instant::compareTo)
+                .get();
     }
 }

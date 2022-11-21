@@ -36,8 +36,9 @@ public class RepositoryWrapper {
         return commitList;
     }
 
-    public void visitCommits(Consumer<RevCommit> commitConsumer) {
+    public <T extends Consumer<RevCommit>> T visitCommits(T commitConsumer) {
         collectCommits().forEach(commitConsumer);
+        return commitConsumer;
     }
 
     public Repository unwrap() {

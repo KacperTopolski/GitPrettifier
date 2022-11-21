@@ -49,7 +49,7 @@ public class CommitDuplicator implements Consumer<RevCommit> {
         ObjectInserter inserter = repository.newObjectInserter();
         ObjectId newId = inserter.insert(builder);
 
-        System.out.println(newId + " from " + oldCommit.getId());
+//        System.out.println(newId + " from " + oldCommit.getId());
 
         mapped.put(oldCommit.getId(), newId);
         lastCreated = newId;

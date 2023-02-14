@@ -6,10 +6,9 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 
 import java.io.File;
-import java.io.IOException;
 
 public class Main {
-    @SneakyThrows({IOException.class, InterruptedException.class})
+    @SneakyThrows
     static String launchVim(String initialContent) {
         File tempFile = File.createTempFile("gitprettifier_test_file", ".txt");
         FileUtils.writeStringToFile(tempFile, initialContent);
@@ -54,16 +53,16 @@ public class Main {
                         .argName("authors")
                         .required(false)
                         .hasArg(false)
-                        .desc("Change authors / committers")
+                        .desc("Changes authors / committers")
                         .build()
         );
 
         options.addOption(
-                Option.builder("map_time")
-                        .argName("map_time")
+                Option.builder("time")
+                        .argName("time")
                         .required(false)
                         .numberOfArgs(2)
-                        .desc("Change commit time")
+                        .desc("Changes commit time")
                         .build()
         );
 
@@ -71,14 +70,22 @@ public class Main {
                 Option.builder("chains")
                         .argName("chains")
                         .required(false)
-                        .desc("Squash all chains")
+                        .desc("Squashes all chains")
+                        .build()
+        );
+
+        options.addOption(
+                Option.builder("tree")
+                        .argName("tree")
+                        .required(false)
+                        .desc("Picks longest path from DAG of commits")
                         .build()
         );
 
         return options;
     }
 
-    @SneakyThrows(IOException.class)
+    @SneakyThrows
     static void cmdHandler(CommandLine cmd) {
         String input = cmd.getOptionValue("input");
         String output = cmd.hasOption("output") ? cmd.getOptionValue("output") : input;
@@ -87,7 +94,7 @@ public class Main {
         File newRepo = new File(output);
 
         if (!oldRepo.exists()) {
-            System.err.println("input repository does not exist");
+            System.err.println("Input repository does not exist");
             return;
         }
 
@@ -102,10 +109,12 @@ public class Main {
 
         if (cmd.hasOption("authors"))
             Authors.handle(rw);
-        else if (cmd.hasOption("map_time"))
-            Time.handle(rw, cmd.getOptionValues("map_time")[0], cmd.getOptionValues("map_time")[1]);
+        else if (cmd.hasOption("time"))
+            Time.handle(rw, cmd.getOptionValues("time")[0], cmd.getOptionValues("time")[1]);
         else if (cmd.hasOption("chains"))
             Chains.handle(rw);
+        else if (cmd.hasOption("tree"))
+            Tree.handle(rw);
     }
 
     public static void main(String[] args) {

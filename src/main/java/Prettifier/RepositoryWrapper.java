@@ -3,10 +3,7 @@ package Prettifier;
 import CommitConsumers.CommitDuplicator;
 import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
-import static org.eclipse.jgit.api.RebaseCommand.InteractiveHandler;
 
-import org.eclipse.jgit.api.RebaseCommand;
-import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -14,7 +11,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -50,32 +46,14 @@ public class RepositoryWrapper {
         return repository;
     }
 
-    @SneakyThrows(GitAPIException.class)
-    public void rebuild(InteractiveHandler ih) {
-        ObjectId trunk = collectCommits().get(0).getId();
-
-        Git g = new Git(repository);
-        var res = g.rebase().setUpstream(trunk).runInteractively(ih).call();
-        System.out.println(res.getStatus().name());
-        System.out.println(res.getConflicts());
-        System.out.println(res.getCurrentCommit().getFullMessage());
-
-        g.rebase().setUpstream("origin/main").setOperation(RebaseCommand.Operation.ABORT).call();
-
-    }
-
-    // assumes repo is checked out
     @SneakyThrows({IOException.class, GitAPIException.class})
-    public void rebuild(Consumer<CommitBuilder>... modifiers) {
-        CommitDuplicator cd = new CommitDuplicator(repository, modifiers);
-        visitCommits(cd);
-
+    public void rebuild(ObjectId loc) {
         Git g = new Git(repository);
 
         String finalBranchName = repository.getBranch(), temporalBranchName = "temporal_42";
 
         g.branchCreate()
-                .setStartPoint(cd.getLastCreated().name())
+                .setStartPoint(loc.name())
                 .setName(temporalBranchName)
                 .call();
 
@@ -92,5 +70,14 @@ public class RepositoryWrapper {
                 .setOldName(temporalBranchName)
                 .setNewName(finalBranchName)
                 .call();
+    }
+
+    // assumes repo is checked out
+    @SneakyThrows
+    public void rebuild(Consumer<CommitBuilder>... modifiers) {
+        CommitDuplicator cd = new CommitDuplicator(repository, modifiers);
+        visitCommits(cd);
+
+        rebuild(cd.getLastCreated());
     }
 }

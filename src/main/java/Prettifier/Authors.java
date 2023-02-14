@@ -71,9 +71,6 @@ public interface Authors {
             }
         }
 
-//        for (var entry : mp.entrySet())
-//            System.out.println(entry);
-
         return mp;
     }
 }

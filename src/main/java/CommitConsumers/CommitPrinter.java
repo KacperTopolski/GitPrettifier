@@ -7,7 +7,6 @@ import org.eclipse.jgit.revwalk.RevObject;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -19,7 +18,7 @@ public class CommitPrinter implements Consumer<RevCommit> {
         this.repository = repository;
     }
 
-    @SneakyThrows(IOException.class)
+    @SneakyThrows
     @Override
     public void accept(RevCommit commit) {
         List<?> parents = Arrays.stream(commit.getParents()).map(RevObject::getId).toList();

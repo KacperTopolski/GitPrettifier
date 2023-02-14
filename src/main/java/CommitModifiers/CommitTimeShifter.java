@@ -18,11 +18,6 @@ public class CommitTimeShifter implements Consumer<CommitBuilder> {
         double old_len = oldr.getEpochSecond() - oldl.getEpochSecond();
         double new_len = newr.getEpochSecond() - newl.getEpochSecond();
 
-        System.err.println(oldl);
-        System.err.println(oldr);
-        System.err.println(newl);
-        System.err.println(newr);
-
         f = i -> {
             double diff = i.getEpochSecond() - oldl.getEpochSecond();
             diff *= new_len / old_len;

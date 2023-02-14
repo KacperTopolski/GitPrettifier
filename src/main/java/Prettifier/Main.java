@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class Main {
     @SneakyThrows
@@ -118,6 +120,11 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            Scanner input = new Scanner(System.in);
+            args = input.nextLine().split("\\s+");
+        }
+
         Options options = createOptions();
         try {
             CommandLineParser parser = new DefaultParser();

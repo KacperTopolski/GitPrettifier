@@ -23,3 +23,7 @@ Repositories to play with:
 `git clone https://github.com/janfornal/GameLoader.git`
 
 `git clone https://github.com/mhorod/chess.git`
+
+Pretty git log:
+
+`git log --decorate --oneline --graph`

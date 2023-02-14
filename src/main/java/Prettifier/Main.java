@@ -26,8 +26,7 @@ public class Main {
         return returnValue == 0 ? content : "";
     }
 
-    @SneakyThrows(ParseException.class)
-    static CommandLine argsHandler(String[] args) {
+    static Options createOptions() {
         Options options = new Options();
 
         options.addOption(
@@ -68,8 +67,15 @@ public class Main {
                         .build()
         );
 
-        CommandLineParser parser = new DefaultParser();
-        return parser.parse(options, args, false);
+        options.addOption(
+                Option.builder("chains")
+                        .argName("chains")
+                        .required(false)
+                        .desc("Squash all chains")
+                        .build()
+        );
+
+        return options;
     }
 
     @SneakyThrows(IOException.class)
@@ -81,7 +87,7 @@ public class Main {
         File newRepo = new File(output);
 
         if (!oldRepo.exists()) {
-            System.err.println("input repo does not exist");
+            System.err.println("input repository does not exist");
             return;
         }
 
@@ -98,10 +104,20 @@ public class Main {
             Authors.handle(rw);
         else if (cmd.hasOption("map_time"))
             Time.handle(rw, cmd.getOptionValues("map_time")[0], cmd.getOptionValues("map_time")[1]);
+        else if (cmd.hasOption("chains"))
+            Chains.handle(rw);
     }
 
     public static void main(String[] args) {
-        CommandLine cmd = argsHandler(args);
-        cmdHandler(cmd);
+        Options options = createOptions();
+        try {
+            CommandLineParser parser = new DefaultParser();
+            CommandLine cmd = parser.parse(options, args, false);
+            cmdHandler(cmd);
+        } catch (ParseException pe) {
+            HelpFormatter hf = new HelpFormatter();
+            hf.printHelp("GitPrettifier", options);
+            System.out.println(pe.getMessage());
+        }
     }
 }
